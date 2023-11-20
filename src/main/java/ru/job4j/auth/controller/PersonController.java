@@ -1,6 +1,7 @@
 package ru.job4j.auth.controller;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.job4j.auth.model.Person;
@@ -30,7 +31,7 @@ public class PersonController {
     public ResponseEntity<Person> create(@RequestBody Person person) {
         return persons.save(person)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.CONFLICT).build());
     }
 
     @PutMapping("/")
