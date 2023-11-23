@@ -24,27 +24,26 @@ public class PersonController {
     private BCryptPasswordEncoder encoder;
     private final ObjectMapper objectMapper;
 
-    private void validPassword(Person person) {
+    private void validPerson(Person person) {
+        if (person.getLogin() == null || person.getPassword() == null) {
+            throw new NullPointerException("Username and password mustn't be empty");
+        }
         if (person.getPassword().length() < 3) {
             throw new IllegalArgumentException("Invalid password");
         }
     }
 
-    private void validPerson(Person person) {
-        if (person.getLogin() == null || person.getPassword() == null) {
-            throw new NullPointerException("Username and password mustn't be empty");
-        }
-    }
-
     @GetMapping("/")
-    public Collection<Person> findAll() {
-        return this.persons.findAll();
+    public ResponseEntity<Collection<Person>> findAll() {
+        return ResponseEntity.status(HttpStatus.OK)
+                .header("Job4jCustomHeader", "job4j")
+                .body(persons.findAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Person> findById(@PathVariable int id) {
         return persons.findById(id)
-                .map(ResponseEntity::ok)
+                .map(p -> new ResponseEntity<>(p, HttpStatus.OK))
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Person is not found. Please, check requisites."
                 ));
@@ -53,17 +52,15 @@ public class PersonController {
     @PostMapping("/")
     public ResponseEntity<Person> create(@RequestBody Person person) {
         validPerson(person);
-        validPassword(person);
         person.setPassword(encoder.encode(person.getPassword()));
         return persons.save(person)
-                .map(ResponseEntity::ok)
+                .map(p -> new ResponseEntity<>(p, HttpStatus.CREATED))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.CONFLICT).build());
     }
 
     @PutMapping("/")
     public ResponseEntity<Void> update(@RequestBody Person person) {
         validPerson(person);
-        validPassword(person);
         person.setPassword(encoder.encode(person.getPassword()));
         var isUpdated = persons.update(person);
         if (isUpdated) {
