@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.job4j.auth.model.Person;
 import ru.job4j.auth.service.PersonService;
+import ru.job4j.auth.util.FieldsUpdater;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -67,6 +69,22 @@ public class PersonController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PatchMapping("/")
+    public ResponseEntity<Person> updateFieldsByEntityId(@RequestBody Person patch) {
+        var responseEntity = persons.findById(patch.getId())
+                .map(p -> new ResponseEntity<>(p, HttpStatus.OK))
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Person is not found. Please, check requisites."
+                ));
+        try {
+            FieldsUpdater.updateFields(responseEntity.getBody(), patch);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        persons.update(responseEntity.getBody());
+        return responseEntity;
     }
 
     @DeleteMapping("/{id}")
