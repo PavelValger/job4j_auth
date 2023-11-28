@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import ru.job4j.auth.dto.PersonsPassword;
 import ru.job4j.auth.model.Person;
 import ru.job4j.auth.repository.PersonRepository;
 
@@ -45,6 +46,16 @@ public class SimplePersonService implements PersonService, UserDetailsService {
     @Override
     public boolean update(Person person) {
         if (personRepository.existsById(person.getId())) {
+            personRepository.save(person);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean updatePersonsPassword(Person person, PersonsPassword personsPassword) {
+        if (personRepository.existsById(person.getId())) {
+            person.setPassword(personsPassword.getPassword());
             personRepository.save(person);
             return true;
         }

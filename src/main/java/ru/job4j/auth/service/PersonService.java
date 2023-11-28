@@ -1,5 +1,6 @@
 package ru.job4j.auth.service;
 
+import ru.job4j.auth.dto.PersonsPassword;
 import ru.job4j.auth.model.Person;
 
 import java.util.Collection;
@@ -16,4 +17,6 @@ public interface PersonService {
     boolean update(Person person);
 
     boolean deleteById(int id);
+
+    boolean updatePersonsPassword(Person person, PersonsPassword personsPassword);
 }
