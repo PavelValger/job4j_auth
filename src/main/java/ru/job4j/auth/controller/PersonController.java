@@ -41,8 +41,7 @@ public class PersonController {
     }
 
     @PostMapping("/")
-    @Validated(Operation.OnCreate.class)
-    public ResponseEntity<Person> create(@Valid @RequestBody Person person) {
+    public ResponseEntity<Person> create(@Validated(Operation.OnCreate.class) @RequestBody Person person) {
         person.setPassword(encoder.encode(person.getPassword()));
         return persons.save(person)
                 .map(p -> new ResponseEntity<>(p, HttpStatus.CREATED))
@@ -50,8 +49,7 @@ public class PersonController {
     }
 
     @PutMapping("/")
-    @Validated(Operation.OnUpdate.class)
-    public ResponseEntity<Void> update(@Valid @RequestBody Person person) {
+    public ResponseEntity<Void> update(@Validated(Operation.OnUpdate.class) @RequestBody Person person) {
         person.setPassword(encoder.encode(person.getPassword()));
         var isUpdated = persons.update(person);
         if (isUpdated) {
