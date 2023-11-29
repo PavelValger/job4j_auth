@@ -53,16 +53,6 @@ public class SimplePersonService implements PersonService, UserDetailsService {
     }
 
     @Override
-    public boolean updatePersonsPassword(Person person, PersonsPassword personsPassword) {
-        if (personRepository.existsById(person.getId())) {
-            person.setPassword(personsPassword.getPassword());
-            personRepository.save(person);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
     public boolean deleteById(int id) {
         if (personRepository.existsById(id)) {
             personRepository.deleteById(id);

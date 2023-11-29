@@ -67,7 +67,9 @@ public class PersonController {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Person is not found. Please, check requisites."
                 ));
-        persons.updatePersonsPassword(responseEntity.getBody(), personsPassword);
+        var person = responseEntity.getBody();
+        person.setPassword(encoder.encode(personsPassword.getPassword()));
+        persons.save(person);
         return responseEntity;
     }
 

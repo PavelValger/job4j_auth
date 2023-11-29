@@ -17,6 +17,4 @@ public interface PersonService {
     boolean update(Person person);
 
     boolean deleteById(int id);
-
-    boolean updatePersonsPassword(Person person, PersonsPassword personsPassword);
 }
