@@ -3,7 +3,6 @@ package ru.job4j.auth.controller;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,7 +21,6 @@ import java.util.Collection;
 @Validated
 public class PersonController {
     private final PersonService persons;
-    private BCryptPasswordEncoder encoder;
 
     @GetMapping("/")
     public ResponseEntity<Collection<Person>> findAll() {
@@ -42,7 +40,6 @@ public class PersonController {
 
     @PostMapping("/")
     public ResponseEntity<Person> create(@Validated(Operation.OnCreate.class) @RequestBody Person person) {
-        person.setPassword(encoder.encode(person.getPassword()));
         return persons.save(person)
                 .map(p -> new ResponseEntity<>(p, HttpStatus.CREATED))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.CONFLICT).build());
@@ -50,31 +47,23 @@ public class PersonController {
 
     @PutMapping("/")
     public ResponseEntity<Void> update(@Validated(Operation.OnUpdate.class) @RequestBody Person person) {
-        person.setPassword(encoder.encode(person.getPassword()));
-        var isUpdated = persons.update(person);
-        if (isUpdated) {
+        if (persons.update(person)) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
     }
 
     @PatchMapping("/")
-    public ResponseEntity<Person> updatePassword(@Valid @RequestBody PersonsPassword personsPassword) {
-        var responseEntity = persons.findById(personsPassword.getId())
-                .map(p -> new ResponseEntity<>(p, HttpStatus.OK))
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Person is not found. Please, check requisites."
-                ));
-        var person = responseEntity.getBody();
-        person.setPassword(encoder.encode(personsPassword.getPassword()));
-        persons.save(person);
-        return responseEntity;
+    public ResponseEntity<Void> updatePassword(@Valid @RequestBody PersonsPassword personsPassword) {
+        if (persons.updatePersonsPassword(personsPassword)) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@Positive @PathVariable Integer id) {
-        var isDeleted = persons.deleteById(id);
-        if (isDeleted) {
+        if (persons.deleteById(id)) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();

@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.job4j.auth.dto.PersonsPassword;
 import ru.job4j.auth.model.Person;
@@ -22,6 +23,7 @@ import static java.util.Collections.emptyList;
 public class SimplePersonService implements PersonService, UserDetailsService {
     private static final Logger LOG = LoggerFactory.getLogger(SimplePersonService.class.getName());
     private final PersonRepository personRepository;
+    private BCryptPasswordEncoder encoder;
 
     @Override
     public Collection<Person> findAll() {
@@ -36,6 +38,7 @@ public class SimplePersonService implements PersonService, UserDetailsService {
     @Override
     public Optional<Person> save(Person person) {
         try {
+            person.setPassword(encoder.encode(person.getPassword()));
             return Optional.of(personRepository.save(person));
         } catch (Exception e) {
             LOG.info("Неудачная попытка сохранения person, Exception in log example", e);
@@ -46,10 +49,23 @@ public class SimplePersonService implements PersonService, UserDetailsService {
     @Override
     public boolean update(Person person) {
         if (personRepository.existsById(person.getId())) {
+            person.setPassword(encoder.encode(person.getPassword()));
             personRepository.save(person);
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean updatePersonsPassword(PersonsPassword personsPassword) {
+        var optionalPerson = personRepository.findById(personsPassword.getId());
+        if (optionalPerson.isEmpty()) {
+            return false;
+        }
+        var person = optionalPerson.get();
+        person.setPassword(encoder.encode(personsPassword.getPassword()));
+        personRepository.save(person);
+        return true;
     }
 
     @Override
